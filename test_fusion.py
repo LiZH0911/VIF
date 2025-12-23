@@ -13,36 +13,36 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 def main():
     # args
     parser = argparse.ArgumentParser()
-    parser.add_argument('--model_name', type=str, default='lzh_fusion')
-    parser.add_argument('--model_dir', type=str,default='./models/')
 
-    parser.add_argument('--dataset_dir', type=str, default='./Dataset/test/')
-    parser.add_argument('--dataset_name', type=str, default='MSRS')
-    parser.add_argument('--dataset_type', type=str, default='vif')
-    parser.add_argument('--type_A', type=str, default='ir')
-    parser.add_argument('--type_B', type=str, default='vi')
-
+    # model
+    parser.add_argument('--model_path', type=str,default='./models/')
     parser.add_argument('--in_channel', type=int, default=1,
                         help='3 means color image and 1 means gray image')
 
-    parser.add_argument('--save_dir', type=str, default='./Dataset/fusion/')
+    parser.add_argument('--dataset_root_dir', type=str, default='./Dataset/test/MSRS/')
+    parser.add_argument('--dataset_name', type=str, default='MSRS')
+    parser.add_argument('--type_A', type=str, default='ir')
+    parser.add_argument('--type_B', type=str, default='vi')
+    parser.add_argument('--dir_A', type=str, default='./Dataset/test/MSRS/ir/')
+    parser.add_argument('--dir_B', type=str, default='./Dataset/test/MSRS/vi/')
+
+    parser.add_argument('--save_dir', type=str, default='./Dataset/fusion/MSRS')
 
     args = parser.parse_args()
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     # load model
-    model_path = os.path.join(args.model_dir, args.iter_number + '_G.pth')
     model = lzh_fusion()
-    checkpoint = torch.load(model_path)
+    checkpoint = torch.load(args.model_path)
     model.load_state_dict(checkpoint)
     model.eval()
     model = model.to(device)
 
     # load test data
-    A_dir = os.path.join(args.test_dir, args.dataset_name, args.type_A)
-    B_dir = os.path.join(args.test_dir, args.dataset_name, args.type_B)
-    test_set = Dataset(A_dir, B_dir, args.in_channel)
+    dir_A = os.path.join(args.test_dir, args.dataset_name, args.type_A)
+    dir_B = os.path.join(args.test_dir, args.dataset_name, args.type_B)
+    test_set = Dataset(dir_A=dir_A, dir_B=dir_B, in_channel=args.in_channel)
     test_loader = DataLoader(
         dataset=test_set,
         batch_size=1,

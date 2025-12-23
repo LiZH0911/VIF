@@ -29,12 +29,12 @@ def main():
     # dataset
     parser.add_argument('--dataset_name', type=str, default='MSRS')
     # parser.add_argument('--dataset_root_dir', type=str, default='E:/coco/train2014/train2014', help='训练图像的目录')
-    parser.add_argument('--dataset_root_dir', type=str, default='Dataset/train/MSRS/')
+    parser.add_argument('--dataset_root_dir', type=str, default='./Dataset/train/MSRS/')
     parser.add_argument('--train_num', type=int, default=40000, help='训练图像的数量')
     parser.add_argument('--type_A', type=str, default='ir')
     parser.add_argument('--type_B', type=str, default='vi')
-    parser.add_argument('--dir_A', type=str, default='Dataset/train/MSRS/ir/')
-    parser.add_argument('--dir_B', type=str, default='Dataset/train/MSRS/vi/')
+    parser.add_argument('--dir_A', type=str, default='./Dataset/train/MSRS/ir/')
+    parser.add_argument('--dir_B', type=str, default='./Dataset/train/MSRS/vi/')
 
     # optimizer
     parser.add_argument('--lr_start', type=float, default=0.0001, help='初始学习率')
@@ -126,5 +126,4 @@ def main():
             torch.save(model.state_dict(), model_path)
 
 if __name__ == "__main__":
-
     main()
