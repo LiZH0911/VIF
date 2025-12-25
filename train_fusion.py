@@ -6,6 +6,7 @@ import datetime
 from utils import utils_image
 from torch.optim import Adam, lr_scheduler
 from network.net_lzh-fusion import lzh-fusion
+from tensorboardX import SummaryWriter
 
 from utils.dataset_vif import Dataset
 
@@ -45,7 +46,7 @@ def main():
     parser.add_argument('--batch_size', type=int, default=2, help='批量大小')
     parser.add_argument('--checkpoint_print', type=int, default=200, help='打印训练过程信息的batch间隔')
     parser.add_argument('--checkpoint_save', type=int, default=1, help='保存模型的epoch间隔')
-
+    parser.add_argument('--log_dir', type=str, default='./train_log/test_log_dir', help='used for tensorboard writer init')
     args = parser.parse_args()
 
 
@@ -83,15 +84,22 @@ def main():
     # Record the accumulated loss within a step length to calculate the printed average loss
     total_loss_accumulate = 0.
 
+    # tensorboard
+    writer = SummaryWriter(log_dir=args.log_dir)
+
     # save
     utils_image.FileHandler.make_dir(args.save_model_dir)
 
+    # timestamp
     timestamp = datetime.datetime.now().strftime('_%Y%m%d_%H%M%S_')
+
     current_step = 0
     for epoch_idx in range(args.num_epochs): # 遍历每个轮次
         print("-------epoch {} start-------\n".format(epoch_idx + 1))
         model.train()
         lr_this_epo = optimizer.param_groups[0]['lr']
+        # add training info to tensorboard writer
+        writer.add_scalar(tag='learning_rate', scalar_value=lr_this_epo, global_step=epoch_idx + 1)
         for batch_idx, (batch_A, batch_B)  in enumerate(train_dataloader):
             # current batch
             batch_A.to(device)
@@ -108,10 +116,16 @@ def main():
             # accumulated loss
             total_loss_accumulate += total_loss
             current_step += 1
+
+            writer.add_scalar(tag="total_loss", scalar_value=total_loss, global_step=current_step)
+
             # print training information
             if current_step % args.checkpoint_print == 0:
                 # average loss
                 total_loss_avg = total_loss_accumulate / args.checkpoint_print
+
+                writer.add_scalar(tag="total_loss_avg", scalar_value=total_loss_avg, global_step=current_step)
+
                 msg = "epoch: {}/{}, batch: {}/{}, lr:{:.6f}, total loss: {:.6f} \n". \
                     format(epoch_idx+1, args.num_epochs, batch_idx+1, num_batches, lr_this_epo, total_loss_avg)
                 print(msg)

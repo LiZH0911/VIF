@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
-from loss_ssim import ssim, msssim
+from network.loss_ssim import ssim, msssim
 
 mse_loss = nn.MSELoss()
 l1_loss = nn.L1Loss()

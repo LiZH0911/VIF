@@ -5,7 +5,7 @@ from scipy.signal import convolve2d
 import math
 from skimage.metrics import structural_similarity as ssim
 
-class Metric():
+class Evaluator():
     @classmethod
     def input_check(cls, imgF, imgA=None, imgB=None):
         if imgA is None:
@@ -86,7 +86,7 @@ class Metric():
     @classmethod
     def VIFF(cls, image_F, image_A, image_B):
         cls.input_check(image_F, image_A, image_B)
-        return cls.compare_viff(image_A, image_F)+cls.compare_viff(image_B, image_F)
+        return (cls.compare_viff(image_A, image_F)+cls.compare_viff(image_B, image_F))/2
 
     @classmethod
     def compare_viff(cls,ref, dist): # viff of a pair of pictures
@@ -202,7 +202,7 @@ class Metric():
     @classmethod
     def SSIM(cls, image_F, image_A, image_B):
         cls.input_check(image_F, image_A, image_B)
-        return ssim(image_F,image_A)+ssim(image_F,image_B)
+        return (ssim(image_F,image_A)+ssim(image_F,image_B))/2
 
 
 def VIFF(image_F, image_A, image_B):
