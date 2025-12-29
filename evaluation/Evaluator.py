@@ -202,8 +202,8 @@ class Evaluator():
     @classmethod
     def SSIM(cls, image_F, image_A, image_B):
         cls.input_check(image_F, image_A, image_B)
-        return (ssim(image_F,image_A)+ssim(image_F,image_B))/2
-
+        return (ssim(image_F,image_A) + ssim(image_F,image_B))/2. # average
+        # return ssim(image_F, image_A) + ssim(image_F, image_B)
 
 def VIFF(image_F, image_A, image_B):
     refA=image_A

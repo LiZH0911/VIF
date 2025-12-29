@@ -19,14 +19,12 @@ def main():
     parser.add_argument('--in_channel', type=int, default=1,
                         help='3 means color image and 1 means gray image')
 
-    parser.add_argument('--dataset_root_dir', type=str, default='./Dataset/test/MSRS/')
+    parser.add_argument('--dataset_root_dir', type=str, default='./dataset/test/')
     parser.add_argument('--dataset_name', type=str, default='MSRS')
     parser.add_argument('--type_A', type=str, default='ir')
     parser.add_argument('--type_B', type=str, default='vi')
-    parser.add_argument('--dir_A', type=str, default='./Dataset/test/MSRS/ir/')
-    parser.add_argument('--dir_B', type=str, default='./Dataset/test/MSRS/vi/')
 
-    parser.add_argument('--save_dir', type=str, default='./Dataset/fusion/MSRS')
+    parser.add_argument('--save_root_dir', type=str, default='./results/')
 
     args = parser.parse_args()
 
@@ -40,8 +38,8 @@ def main():
     model = model.to(device)
 
     # load test data
-    dir_A = os.path.join(args.test_dir, args.dataset_name, args.type_A)
-    dir_B = os.path.join(args.test_dir, args.dataset_name, args.type_B)
+    dir_A = os.path.join(args.dataset_root_dir, args.dataset_name, args.type_A)
+    dir_B = os.path.join(args.dataset_root_dir, args.dataset_name, args.type_B)
     test_set = Dataset(dir_A=dir_A, dir_B=dir_B, in_channel=args.in_channel)
     test_loader = DataLoader(
         dataset=test_set,
@@ -51,7 +49,7 @@ def main():
         drop_last=False,
         pin_memory=True
     )
-    save_dir = os.path.join(args.save_dir, args.dataset_name)
+    save_dir = os.path.join(args.save_root_dir, args.dataset_name)
     utils_image.FileHandler.make_dir(save_dir)
 
     with torch.no_grad():
