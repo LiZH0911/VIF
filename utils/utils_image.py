@@ -51,6 +51,7 @@ class FileHandler:
     def imread_uint(path, n_channels=1):
         '''
         n_channels = 1 or 3
+        (h,w,c)
         '''
         if n_channels == 1 :
             img = cv2.imread(path, cv2.IMREAD_GRAYSCALE) # HxW
@@ -309,32 +310,32 @@ class ImageProcess:
     @staticmethod
     def img_padding(img, c_h, c_w):
         '''
-        确保图像尺寸能被指定的块尺寸整除，输入图像的 shape 要求为 (c, h, w)
-        (c, h, w)图像 -> (c, h_patches * c_h, w_patches * c_w)
+        确保图像尺寸能被指定的块尺寸整除，输入图像的 shape 要求为 (h, w, c)
+        (h, w, c)图像 -> (h_patches * c_h, w_patches * c_w, c)
         '''
-        c, h, w = img.shape[:]
+        h, w, c = img.shape[:]
         h_patches = int(np.ceil(h / c_h)) # 高度方向需要的分块数，np.ceil为向上取整函数
         w_patches = int(np.ceil(w / c_w)) # 宽度方向需要的分块数
 
         h_padding = h_patches * c_h - h # 高度方向需要填充的像素数
         w_padding = w_patches * c_w - w # 宽度方向需要填充的像素数
         # reflect, symmetric, wrap, edge, linear_ramp, maximum, mean, median, minimum
-        img = np.pad(img, ((0, 0), (0, h_padding), (0, w_padding)), 'reflect') # 反射填充
+        img = np.pad(img, ((0, h_padding), (0, w_padding), (0, 0)), 'reflect') # 反射填充
         return img, [h_patches, w_patches, h_padding, w_padding]
 
     @staticmethod
     def img_patching(img, c_h, c_w):
         '''
-        图像分块函数，(c, h, w)图像 -> (h_patches * w_patches, c, c_h, c_w)子图像
+        图像分块函数，(h, w, c)图像 -> (h_patches * w_patches, c_h, c_w, c)子图像
         '''
         img, pad_para = ImageProcess.img_padding(img, c_h, c_w)
-        c, h, w = img.shape[:]
+        h, w, c = img.shape[:]
         h_patches = pad_para[0]
         w_patches = pad_para[1]
 
-        patches = img.reshape(c, h_patches, c_h, w_patches, c_w) # 重塑为 (c, h_patches, c_h, w_patches, c_w)
-        patches = patches.transpose(1, 3, 0, 2, 4) # 调整维度顺序为 (h_patches, w_patches, c, c_h, c_w)
-        patch_matrix = patches.reshape(-1, c, c_h, c_w) # 最终重塑为 (h_patches * w_patches, c, c_h, c_w)
+        patches = img.reshape(h_patches, c_h, w_patches, c_w, c) # 重塑为 (h_patches, c_h, w_patches, c_w, c)
+        patches = patches.transpose(0, 2, 1, 3, 4) # 调整维度顺序为 (h_patches, w_patches, c_h, c_w, c)
+        patch_matrix = patches.reshape(-1, c_h, c_w, c) # 最终重塑为 (h_patches * w_patches, c_h, c_w, c)
 
         return patch_matrix, pad_para
 
