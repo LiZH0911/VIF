@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 import os
 from utils import utils_image
+import matplotlib.pyplot as plt
 
 class PartialEnlargement:
     @staticmethod
@@ -93,6 +94,51 @@ class PartialEnlargement:
 
         return results
 
+def visualize_feature_maps(feature_maps, title="Feature Maps", save_path=None, cols=3):
+    # 支持输入 (B,C,H,W)（仅 B==1 时去掉 batch）或 (C,H,W)
+    if feature_maps is None:
+        raise ValueError("feature_maps is None")
+    fm = feature_maps
+    if fm.ndim == 4:
+        if fm.shape[0] == 1:
+            fm = fm.squeeze(0)
+        else:
+            raise ValueError("visualize_feature_maps expects batch size 1 or a (C,H,W) tensor")
+    if fm.ndim != 3:
+        raise ValueError("feature_maps must have shape (C,H,W) or (1,C,H,W)")
+
+    num_features = fm.shape[0]
+    if num_features == 0:
+        raise ValueError("no feature maps to display")
+
+    cols = max(1, int(cols))
+    rows = int(np.ceil(num_features / cols))
+
+    fig, axes = plt.subplots(rows, cols, figsize=(cols * 2, rows * 2))
+    axes = np.array(axes).reshape(-1)
+
+    for i, ax in enumerate(axes):
+        if i < num_features:
+            feature_map = fm[i].cpu().detach().numpy()
+            feature_map = (feature_map - feature_map.min()) / (feature_map.max() - feature_map.min() + 1e-8)
+            ax.imshow(feature_map, cmap='viridis')
+            ax.set_title(f'Ch{i}', fontsize=10)
+            ax.axis('off')
+        else:
+            ax.axis('off')
+
+    fig.suptitle(title, fontsize=14, y=0.98)
+    plt.tight_layout(rect=[0, 0, 1, 0.95])
+
+    if save_path:
+        plt.savefig(save_path, bbox_inches='tight', dpi=300)
+        plt.close(fig)
+        print(f"特征图已保存到: {save_path}")
+        return None
+    else:
+        plt.show()
+        return fig
+
 # 使用示例
 if __name__ == "__main__":
     img_dir = os.path.join(os.getcwd(), 'test')
@@ -105,6 +151,6 @@ if __name__ == "__main__":
     region_width = 80
     region_height = 50
 
-    # result = annotate_and_zoom(image_path, regions, region_width,region_height)
+    # results = annotate_and_zoom(image_path, regions, region_width,region_height)
     result = PartialEnlargement.partial_enlarge_all_img(img_dir, regions, region_width, region_height, output_dir=output_dir)
 

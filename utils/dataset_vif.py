@@ -6,12 +6,12 @@ import utils.utils_image as utils
 
 
 class Dataset(data.Dataset):
-    def __init__(self, dir_A, dir_B, in_channel, pair_num=None):
+    def __init__(self, dir_A, dir_B, in_channels, pair_num=None):
         super(Dataset, self).__init__()
 
         self.paths_A, self.names_A = utils.FileHandler.list_img_paths(dir_A, num=pair_num)
         self.paths_B, self.names_B = utils.FileHandler.list_img_paths(dir_B, num=pair_num)
-        self.in_channel = in_channel
+        self.in_channels = in_channels
 
     def __getitem__(self, index):
 

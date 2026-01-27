@@ -281,31 +281,6 @@ class ImageChannelConversion:
             return img_list
 
 # ------------------------------------------------------------------------------------------------------------
-# 将x2的尺寸调整到与x1相同，通过反射填充的方式
-class UpsampleReshape_eval(torch.nn.Module):
-    def __init__(self):
-        super(UpsampleReshape_eval, self).__init__()
-        self.up = nn.Upsample(scale_factor=2) # 2倍上采样
-
-    def forward(self, x1, x2):
-        # x2 = self.up(x2)
-        shape_x1 = x1.size() # 目标尺寸
-        shape_x2 = x2.size() # 当前尺寸
-        pad_h = shape_x1[2] - shape_x2[2]  # 高度差
-        pad_w = shape_x1[3] - shape_x2[3]  # 宽度差
-        # 均匀分配填充（左右、上下）
-        if pad_h != 0 or pad_w != 0:
-            # 计算填充值：左、右、上、下
-            pad_left = pad_w // 2
-            pad_right = pad_w - pad_left
-            pad_top = pad_h // 2
-            pad_bottom = pad_h - pad_top
-            reflection_padding = (pad_left, pad_right, pad_top, pad_bottom)
-            reflection_pad = nn.ReflectionPad2d(reflection_padding)
-            x2 = reflection_pad(x2)
-        return x2
-
-# ------------------------------------------------------------------------------------------------------------
 class ImageProcess:
     @staticmethod
     def img_padding(img, c_h, c_w):
