@@ -75,5 +75,5 @@ class Fusionloss(nn.Module):
         loss_l1 = 20 * self.L_Intensity(image_A, image_B, image_fused)
         loss_gradient = 20 * self.L_Grad(image_A, image_B, image_fused)
         loss_SSIM = 10 * (1 - self.L_SSIM(image_A, image_B, image_fused))
-        fusion_loss = loss_l1 + loss_gradient + loss_SSIM
-        return fusion_loss, loss_gradient, loss_l1, loss_SSIM
+        loss_total = loss_l1 + loss_gradient + loss_SSIM
+        return loss_total, loss_gradient, loss_l1, loss_SSIM

@@ -5,39 +5,39 @@ import torch.utils.data as data
 import utils.utils_image as utils
 
 
-class Dataset(data.Dataset):
-    def __init__(self, dir_A, dir_B, in_channels, pair_num=None):
-        super(Dataset, self).__init__()
+class Fusion_Dataset(data.Dataset):
+    def __init__(self, dir_ir, dir_vi, pair_num=None):
+        super(Fusion_Dataset, self).__init__()
 
-        self.paths_A, self.names_A = utils.FileHandler.list_img_paths(dir_A, num=pair_num)
-        self.paths_B, self.names_B = utils.FileHandler.list_img_paths(dir_B, num=pair_num)
-        self.in_channels = in_channels
+        self.paths_ir, self.names_ir = utils.FileHandler.list_img_paths(dir_ir, num=pair_num)
+        self.paths_vi, self.names_vi = utils.FileHandler.list_img_paths(dir_vi, num=pair_num)
+
 
     def __getitem__(self, index):
 
-        path_A = self.paths_A[index]
-        path_B = self.paths_B[index]
-        name_A = self.names_A[index]
-        name_B = self.names_B[index]
+        path_ir = self.paths_ir[index]
+        path_vi = self.paths_vi[index]
+        name_ir = self.names_ir[index]
+        name_vi = self.names_vi[index]
         # read image
-        img_A = utils.FileHandler.imread_uint(path_A, self.in_channels)
-        img_B = utils.FileHandler.imread_uint(path_B, self.in_channels)
+        img_ir = utils.FileHandler.imread_uint(path_ir, n_channels=1)
+        img_vi = utils.FileHandler.imread_uint(path_vi, n_channels=3)
 
         # normalization
-        img_A = utils.FormatConversion.uint2single(img_A)
-        img_B = utils.FormatConversion.uint2single(img_B)
+        img_ir = utils.FormatConversion.uint2single(img_ir)
+        img_vi = utils.FormatConversion.uint2single(img_vi)
 
         # numpy to tensor, (h,w,c) to (c,h,w)
-        img_A = utils.FormatConversion.single2tensor3(img_A)
-        img_B = utils.FormatConversion.single2tensor3(img_B)
+        img_ir = utils.FormatConversion.single2tensor3(img_ir)
+        img_vi = utils.FormatConversion.single2tensor3(img_vi)
 
-        # return {'img_A': img_A,
-        #         'img_B': img_B,
-        #         'path_A': path_A,
-        #         'path_B': path_B,
-        #         'name_A': name_A,
-        #         'name_B': name_B}
-        return img_A, img_B
+        # return {'img_ir': img_ir,
+        #         'img_vi': img_vi,
+        #         'path_ir': path_ir,
+        #         'path_vi': path_vi,
+        #         'name_ir': name_ir,
+        #         'name_vi': name_vi}
+        return img_ir, img_vi
 
     def __len__(self):
-        return len(self.paths_A)
+        return len(self.paths_ir)

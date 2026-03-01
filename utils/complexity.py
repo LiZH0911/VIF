@@ -47,3 +47,5 @@ if __name__ == "__main__":
     # ms = (end - start) * 1000
     print("avg ms per batch:", ms/iter_n)
     print("avg ms per image:", ms/iter_n / batch_size)
+
+    # 拓展：每个模块的推理时间？

@@ -16,7 +16,7 @@ def setup_logging(log_dir='./'):
 # 示例
 if __name__ == '__main__':
     setup_logging(log_dir='./')
-    logger = logging.getLogger()  # 创建日志记录器对象，默认对象名称为root
+    logger = logging.getLogger()  # 创建日志记录器对象，默认name为root
     print(f"日志对象名称: {logger.name}")
     print(f"级别: {logger.level}")
     logger.info('Started')

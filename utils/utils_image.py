@@ -11,17 +11,17 @@ from PIL import Image
 
 # logging.basicConfig(filename='program.log', filemode='w', level=logging.DEBUG)
 
-logger = logging.getLogger(__name__)
+# logger = logging.getLogger(__name__)
 
 # ------------------------------------------------------------------------------------------------------------
 class FileHandler:
     @staticmethod
     def make_dir(path):
         if not os.path.exists(path):
-            try:
-                os.makedirs(path, exist_ok=True)
-            except Exception as e:
-                logger.error("Create store path failed on init: %s", e)
+            # try:
+            os.makedirs(path, exist_ok=True)
+            # except Exception as e:
+            #     logger.error("Create store path failed on init: %s", e)
 
     # list original image paths
     @staticmethod
@@ -65,8 +65,12 @@ class FileHandler:
         return img
 
     @staticmethod
-    def save_img(img, output_path):
-        '''将三维张量转换为图像并保存'''
+    def save_img(img, output_path, n_channels=1):
+        '''
+        保存图像
+        input: RGB HxWx3 or G HxWx1
+        '''
+        img_bgr = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
         cv2.imwrite(output_path, img)
 
 # ------------------------------------------------------------------------------------------------------------
@@ -279,6 +283,53 @@ class ImageChannelConversion:
             return [cv2.cvtColor(img, cv2.COLOR_GRAY2BGR) for img in img_list]
         else:
             return img_list
+
+    @staticmethod
+    def RGB2YCrCb(input_im):
+        # b,3,h,w   b,h,w,3
+        im_flat = input_im.transpose(1, 3).transpose(
+            1, 2).reshape(-1, 3)  # (nhw,c)
+        R = im_flat[:, 0]
+        G = im_flat[:, 1]
+        B = im_flat[:, 2]
+        Y = 0.299 * R + 0.587 * G + 0.114 * B
+        Cr = (R - Y) * 0.713 + 0.5
+        Cb = (B - Y) * 0.564 + 0.5
+        Y = torch.unsqueeze(Y, 1)
+        Cr = torch.unsqueeze(Cr, 1)
+        Cb = torch.unsqueeze(Cb, 1)
+        temp = torch.cat((Y, Cr, Cb), dim=1).cuda()
+        out = (
+            temp.reshape(
+                list(input_im.size())[0],
+                list(input_im.size())[2],
+                list(input_im.size())[3],
+                3,
+            )
+            .transpose(1, 3)
+            .transpose(2, 3)
+        )
+        return out
+
+    @staticmethod
+    def YCrCb2RGB(input_im):
+        im_flat = input_im.transpose(1, 3).transpose(1, 2).reshape(-1, 3)
+        mat = torch.tensor(
+            [[1.0, 1.0, 1.0], [1.403, -0.714, 0.0], [0.0, -0.344, 1.773]]
+        ).cuda()
+        bias = torch.tensor([0.0 / 255, -0.5, -0.5]).cuda()
+        temp = (im_flat + bias).mm(mat).cuda()
+        out = (
+            temp.reshape(
+                list(input_im.size())[0],
+                list(input_im.size())[2],
+                list(input_im.size())[3],
+                3,
+            )
+            .transpose(1, 3)
+            .transpose(2, 3)
+        )
+        return out
 
 # ------------------------------------------------------------------------------------------------------------
 class ImageProcess:
