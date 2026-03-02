@@ -117,7 +117,7 @@ def main():
         # add training info to tensorboard writer
         writer.add_scalar(tag='learning_rate', scalar_value=lr_this_epo, global_step=epoch_idx + 1)
 
-        for batch_idx, (imgs_ir, imgs_vi)  in enumerate(train_dataloader):
+        for batch_idx, (imgs_ir, imgs_vi, name)  in enumerate(train_dataloader):
             # current batch
             imgs_ir = imgs_ir.to(device)
             imgs_vi = imgs_vi.to(device)

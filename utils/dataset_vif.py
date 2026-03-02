@@ -17,8 +17,8 @@ class Fusion_Dataset(data.Dataset):
 
         path_ir = self.paths_ir[index]
         path_vi = self.paths_vi[index]
-        name_ir = self.names_ir[index]
-        name_vi = self.names_vi[index]
+        name = self.names_ir[index]
+
         # read image
         img_ir = utils.FileHandler.imread_uint(path_ir, n_channels=1)
         img_vi = utils.FileHandler.imread_uint(path_vi, n_channels=3)
@@ -37,7 +37,7 @@ class Fusion_Dataset(data.Dataset):
         #         'path_vi': path_vi,
         #         'name_ir': name_ir,
         #         'name_vi': name_vi}
-        return img_ir, img_vi
+        return img_ir, img_vi, name
 
     def __len__(self):
         return len(self.paths_ir)

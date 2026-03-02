@@ -2,10 +2,11 @@ import os
 import torch
 import argparse
 import time
-from utils.dataset_vif import Dataset
+from utils.dataset_vif import Fusion_Dataset
 from torch.utils.data import DataLoader
 from utils import utils_image
-
+from logger import setup_logging
+from tqdm import tqdm
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
@@ -16,8 +17,6 @@ def main():
 
     # model
     parser.add_argument('--model_path', type=str,default='./models/')
-    parser.add_argument('--in_channel', type=int, default=1,
-                        help='3 means color image and 1 means gray image')
 
     parser.add_argument('--dataset_root_dir', type=str, default='./dataset/test/')
     parser.add_argument('--dataset_name', type=str, default='MSRS')
@@ -38,9 +37,9 @@ def main():
     model = model.to(device)
 
     # load test data
-    dir_A = os.path.join(args.dataset_root_dir, args.dataset_name, args.type_A)
-    dir_B = os.path.join(args.dataset_root_dir, args.dataset_name, args.type_B)
-    test_set = Dataset(dir_A=dir_A, dir_B=dir_B, in_channel=args.in_channel)
+    dir_ir = os.path.join(args.dataset_root_dir, args.dataset_name, args.type_A)
+    dir_vi = os.path.join(args.dataset_root_dir, args.dataset_name, args.type_B)
+    test_set = Fusion_Dataset(dir_ir=dir_ir, dir_vi=dir_vi)
     test_loader = DataLoader(
         dataset=test_set,
         batch_size=1,
@@ -52,29 +51,40 @@ def main():
     save_dir = os.path.join(args.save_root_dir, args.dataset_name)
     utils_image.FileHandler.make_dir(save_dir)
 
+    test_bar = tqdm(test_loader)
     with torch.no_grad():
-        for i, img_A, img_B in enumerate(test_loader):
-            img_A.to(device)
-            img_A.to(device)
+        for i, (img_ir, img_vi, name) in enumerate(test_loader):
+            img_ir = img_ir.to(device)
+            img_vi = img_vi.to(device)
+            img_vi_ycrcb = utils_image.ImageChannelConversion.RGB2YCrCb(img_vi)
             start = time.time()
 
             # inference
-            # encoder
-            feature_A = model.encoder(img_A)
-            feature_B = model.encoder(img_B)
 
-            # fusion
-            feature_fused = model.fusion(img_A, img_B, in_channel=args.in_channel)
+            # # encoder
+            # feature_ir = model.encoder(img_ir)
+            # feature_vi = model.encoder(img_vi)
+            # # fusion
+            # feature_fused = model.fusion(img_ir, img_vi, in_channel=args.in_channel)
+            # # decoder
+            # img_fusion = model.decoder(feature_fused)
 
-            # decoder
-            img_fusion = model.decoder(feature_fused)
+            output = model(img_ir, img_vi_ycrcb)
+            img_fusion_ycrcb = torch.cat(
+                (output, img_vi_ycrcb[:, 1:2, :, :],
+                 img_vi_ycrcb[:, 2:, :, :]),
+                dim=1,
+            )
+            img_fusion = utils_image.ImageChannelConversion.YCrCb2RGB(img_fusion_ycrcb)
 
             # save
-            output = utils_image.FormatConversion.tensor2uint(output)
-            output_path = os.path.join(save_dir, args.dataset_name, img_name + '.png')
-            utils_image.FileHandler.save_img(output, output_path)
+            img_fusion = utils_image.FormatConversion.tensor2uint(img_fusion)
+            img_name = name + '.png'
+            save_path = os.path.join(save_dir, img_name)
+            utils_image.FileHandler.save_img(img_fusion, save_path)
             end = time.time()
             print(end-start)
+            test_bar.set_description('Fusion {0} Sucessfully!'.format(img_name))
 
 if __name__ == '__main__':
     main()
