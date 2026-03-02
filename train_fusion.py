@@ -12,7 +12,7 @@ from network.net_lzh-fusion import lzh-fusion
 from tensorboardX import SummaryWriter
 import logging
 from logger import setup_logging
-from utils.fix_random_seed import set_seed
+from utils.utils_init import init_seed
 
 from utils.dataset_vif import Fusion_Dataset
 
@@ -47,7 +47,7 @@ def main():
     parser.add_argument('--lr_decay', type=float, default=0.75, help='学习率衰减因子')
 
     # train
-    parser.add_argument('--seed', type=int, default=3407, help='random seed for training')
+    parser.add_argument('--seed', type=int, default=0, help='random seed for training') # try 3407?
     parser.add_argument('--num_epochs', type=int, default=4, help='训练轮数')
     parser.add_argument('--batch_size', type=int, default=2, help='批量大小')
     parser.add_argument('--checkpoint_print', type=int, default=200, help='打印训练过程信息的batch间隔')
@@ -58,9 +58,8 @@ def main():
     # device
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-
     # seed
-    set_seed(args.seed)
+    init_seed(args.seed)
 
     # model
     model = lzh_fusion().to(device)

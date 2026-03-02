@@ -4,12 +4,11 @@ import argparse
 import time
 from utils.dataset_vif import Fusion_Dataset
 from torch.utils.data import DataLoader
+from network.net_lzh-fusion import lzh-fusion
 from utils import utils_image
-from logger import setup_logging
 from tqdm import tqdm
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
-
 
 def main():
     # args
